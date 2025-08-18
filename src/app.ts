@@ -10,3 +10,5 @@ app.get("/", (req: Request, res: Response) => {
     message: "Welcome to the SomoyXpress Courier service.",
   });
 });
+
+export default app;
