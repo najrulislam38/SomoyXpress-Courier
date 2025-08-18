@@ -1,9 +1,24 @@
 import express, { Request, Response } from "express";
 import { router } from "./routes";
+import cookieParser from "cookie-parser";
+import passport from "passport";
+import expressSession from "express-session";
+import { envVariables } from "./config/env";
+import "./config/passport";
 
 const app = express();
 
 //middleware
+app.use(
+  expressSession({
+    secret: envVariables.EXPRESS_SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(cookieParser());
 app.use(express.json());
 
 //routing
