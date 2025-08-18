@@ -2,10 +2,10 @@
 import { NextFunction, Request, Response } from "express";
 import { UserServices } from "./user.servise";
 import { sendResponse } from "../../utils/sendResponse";
+import httpStatus from "http-status-codes";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const user = await UserServices.createUserDB(req.body);
-  console.log(user);
 
   if (!user) {
     throw new Error("Something wrong!");
@@ -13,43 +13,29 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 
   const { password, ...userInfo } = user.toObject();
 
-  // res.status(200).send({
-  //   success: true,
-  //   message: "User Created Successfully",
-  //   data: userInfo,
-  // });
   sendResponse(res, {
-    statusCode: 201,
+    statusCode: httpStatus.CREATED,
     success: true,
     message: "User Created Successfully",
     data: userInfo,
   });
 };
 
-// const createUser = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const user = await UserServices.createUserDB(req.body);
-//     console.log(user);
+const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+  const result = await UserServices.getAllUserFromDB();
 
-//     if (!user) {
-//       throw new Error("Something wrong!");
-//     }
-
-//     res.status(200).send({
-//       success: true,
-//       message: "User Created Successful",
-//       data: user,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(400).send({
-//       success: false,
-//       message: "User Created failed",
-//       error,
-//     });
-//   }
-// };
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Users Retrieved Successfully",
+    meta: {
+      total: result.meta,
+    },
+    data: result.data,
+  });
+};
 
 export const UserController = {
   createUser,
+  getAllUsers,
 };
