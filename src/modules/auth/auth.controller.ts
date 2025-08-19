@@ -6,6 +6,7 @@ import { createUserToken } from "../../utils/userTokens";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
+import { AuthServices } from "./auth.sevice";
 
 const credentialLogin = async (
   req: Request,
@@ -22,7 +23,13 @@ const credentialLogin = async (
 
     const userTokens = await createUserToken(user);
 
-    res.cookie("accessToken", userTokens, {
+    res.cookie("accessToken", userTokens.accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.cookie("refreshToken", userTokens.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
@@ -43,4 +50,53 @@ const credentialLogin = async (
   })(req, res, next);
 };
 
-export const AuthController = { credentialLogin };
+const logout = async (req: Request, res: Response, next: NextFunction) => {
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User Logged out successfully",
+    data: null,
+  });
+};
+
+const getNewAccessTokenUseRefreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    throw new AppError(httpStatus.BAD_REQUEST, "No refresh token have cookies");
+  }
+
+  const tokenInfo = await AuthServices.getNewAccessTokenUseRefreshToken(
+    refreshToken
+  );
+
+  res.cookie("accessToken", tokenInfo.accessToken);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "New Access token retrieved successfully.",
+    data: tokenInfo,
+  });
+};
+
+export const AuthController = {
+  credentialLogin,
+  logout,
+  getNewAccessTokenUseRefreshToken,
+};
