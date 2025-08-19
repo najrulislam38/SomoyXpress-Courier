@@ -35,7 +35,8 @@ const credentialLogin = async (
       success: true,
       message: "User Logged in successfully",
       data: {
-        accessToken: userTokens,
+        accessToken: userTokens.accessToken,
+        refreshToken: userTokens.refreshToken,
         user: rest,
       },
     });
