@@ -16,6 +16,7 @@ export interface IUser {
   _id?: Types.ObjectId;
   name: string;
   email: string;
+  age: number;
   password: string;
   role: UserRole;
   phone: string;
