@@ -36,4 +36,27 @@ const getAllUserFromDB = async () => {
   };
 };
 
-export const UserServices = { createUserDB, getAllUserFromDB };
+const getSingleUserFromDB = async (userId: string) => {
+  const user = await User.findById(userId);
+
+  return user;
+};
+
+const updateUser = async (userId: string) => {
+  const updateUserInfo = {
+    name: "Rahim",
+  };
+  const user = await User.findByIdAndUpdate(userId, updateUserInfo, {
+    new: true,
+    runValidators: true,
+  });
+
+  return user;
+};
+
+export const UserServices = {
+  createUserDB,
+  getAllUserFromDB,
+  getSingleUserFromDB,
+  updateUser,
+};

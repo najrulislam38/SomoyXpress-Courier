@@ -5,6 +5,8 @@ import passport from "passport";
 import expressSession from "express-session";
 import { envVariables } from "./config/env";
 import "./config/passport";
+import notFound from "./middleware/notFound";
+import { globalErrorHandler } from "./middleware/globalErrorHandler";
 
 const app = express();
 
@@ -30,12 +32,7 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-const notFound = (req: Request, res: Response) => {
-  res.status(400).json({
-    success: false,
-    message: "Route not found!",
-  });
-};
+app.use(globalErrorHandler);
 
 app.use(notFound);
 
