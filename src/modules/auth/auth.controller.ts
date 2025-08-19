@@ -7,6 +7,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import { AuthServices } from "./auth.sevice";
+import { clearCookie, setCookie } from "../../utils/cookieFunction";
 
 const credentialLogin = async (
   req: Request,
@@ -23,17 +24,7 @@ const credentialLogin = async (
 
     const userTokens = await createUserToken(user);
 
-    res.cookie("accessToken", userTokens.accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-
-    res.cookie("refreshToken", userTokens.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+    setCookie(res, userTokens);
 
     const { password: pass, ...rest } = user.toObject();
 
@@ -51,16 +42,7 @@ const credentialLogin = async (
 };
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  });
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  });
+  clearCookie(res);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -85,7 +67,8 @@ const getNewAccessTokenUseRefreshToken = async (
     refreshToken
   );
 
-  res.cookie("accessToken", tokenInfo.accessToken);
+  // res.cookie("accessToken", tokenInfo.accessToken);
+  setCookie(res, tokenInfo);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
