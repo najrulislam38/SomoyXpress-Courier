@@ -48,6 +48,7 @@ export const updateUserZodSchema = z.object({
         "Phone number must be valid for Bangladesh. Format: +8801XXXXXXXXX or 01XXXXXXXXX",
     })
     .optional(),
+  age: z.number().min(12, { message: "Age must be 12 or over" }).optional(),
   role: z.enum([UserRole.SENDER, UserRole.RECEIVER]),
   address: z
     .string()

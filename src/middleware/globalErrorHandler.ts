@@ -3,7 +3,11 @@
 import { NextFunction, Request, Response } from "express";
 import { envVariables } from "../config/env";
 import AppError from "../errorHelpers/AppError";
-import { IErrorSources } from "../interfaces/error.typs";
+import { IErrorSources } from "../interfaces/error.types";
+import { handleDuplicateError } from "../helpers/handleDuplicateError";
+import { handleCastError } from "../helpers/handleCastError";
+import { handleValidationError } from "../helpers/handleValidationError";
+import { handleZodError } from "../helpers/handleZodError";
 
 export const globalErrorHandler = async (
   err: any,
@@ -17,22 +21,27 @@ export const globalErrorHandler = async (
   let errorSources: IErrorSources[] = [
     // {
     //   path: "",
-    //   stack: ""
+    //   message: ""
     // }
   ];
   if (err.code === 11000) {
-    const matchedEmail = err.message.match(/"([^"]*)"/);
-    statusCode = 400;
-    message = `${matchedEmail[1]} is already exists.`;
+    const duplicateError = handleDuplicateError(err);
+    statusCode = duplicateError.statusCode;
+    message = duplicateError.message;
   } else if (err.name === "CastError") {
-    statusCode = 400;
-    message = "Invalid MongoDB Object. Please provide valid id";
+    const castError = handleCastError(err);
+    statusCode = castError.statusCode;
+    message = castError.message;
   } else if (err.name === "ValidationError") {
-    statusCode = 400;
-    message = err.message;
+    const validationError = handleValidationError(err);
+    statusCode = validationError.statusCode;
+    message = validationError.message;
+    errorSources = validationError?.errorSources as IErrorSources[];
   } else if (err.name === "ZodError") {
-    statusCode = err.status;
-    message = "Zod Error";
+    const zodError = handleZodError(err);
+    statusCode = zodError.statusCode;
+    message = zodError.message;
+    errorSources = zodError?.errorSources as IErrorSources[];
   } else if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
@@ -44,7 +53,8 @@ export const globalErrorHandler = async (
   res.status(statusCode).json({
     success: false,
     message,
-    err,
+    errorSources,
+    err: envVariables.NODE_ENV === "development" ? err : null,
     stack: envVariables.NODE_ENV === "development" ? err.stack : null,
   });
 };
