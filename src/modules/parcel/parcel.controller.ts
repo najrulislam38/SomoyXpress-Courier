@@ -61,16 +61,21 @@ const getSingleParcel = catchAsync(
 
 const updateParcelStatus = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // const parcelId = req.params.id;
-    // const decodedToken = req.user as JwtPayload;
+    const parcelId = req.params.id;
+    const payload = req.body;
+    const decodedToken = req.user as JwtPayload;
 
-    // const result = await ParcelServices.getSingleParcel(parcelId, decodedToken);
+    const result = await ParcelServices.updateStatusFromDB(
+      parcelId,
+      decodedToken,
+      payload
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Parcel Retrieved Successfully",
-      data: "result",
+      message: "Parcel Status Updated Successfully",
+      data: result,
     });
   }
 );

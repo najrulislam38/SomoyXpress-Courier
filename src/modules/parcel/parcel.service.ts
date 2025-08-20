@@ -9,6 +9,7 @@ import generateTrackingId from "../../utils/generateTrackingId";
 import { JwtPayload } from "jsonwebtoken";
 import httpStatus from "http-status-codes";
 import { UserRole } from "../user/user.interface";
+import { isValidStatusTransition } from "../../utils/statusChecker";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const createParcelFromDB = async (userId: string, payload: any) => {
@@ -139,18 +140,63 @@ const getSingleParcel = async (parcelId: string, decodedToken: JwtPayload) => {
     parcel.receiver.toString() !== decodedToken.userId
   ) {
     throw new AppError(
-      httpStatus.BAD_REQUEST,
+      httpStatus.UNAUTHORIZED,
       "Unauthorized access. You con't get single parcel"
     );
   }
 
-  // if(decodedToken.)
-
   return parcel;
 };
 
-const updateStatusFromDB = async () => {
-  console.log("");
+const updateStatusFromDB = async (
+  parcelId: string,
+  decodedToken: JwtPayload,
+  payload: Partial<IStatusLog>
+) => {
+  const { status, location, note } = payload;
+
+  const parcel = await Parcel.findById(parcelId);
+
+  if (!parcel) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found");
+  }
+
+  if (
+    decodedToken.role !== UserRole.ADMIN &&
+    decodedToken.role !== UserRole.SUPER_ADMIN
+  ) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Unauthorized access. You con't update parcel status"
+    );
+  }
+
+  if (!status) {
+    throw new AppError(400, "You can provide parcel new status");
+  }
+
+  if (!isValidStatusTransition(parcel.currentStatus, status)) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid status transition");
+  }
+
+  const statusLog: IStatusLog = {
+    status,
+    location: location || parcel.deliveryAddress,
+    timestamp: new Date(),
+    updatedBy: decodedToken.email,
+    note: note || `Status updated to ${status}`,
+  };
+
+  parcel.currentStatus = status;
+  parcel.statusLogs.push(statusLog);
+
+  if (status === ParcelStatus.DELIVERED) {
+    parcel.actualDeliveryDate = new Date();
+  }
+
+  await parcel.save();
+
+  return parcel;
 };
 
 const cancelParcelFromDB = async (

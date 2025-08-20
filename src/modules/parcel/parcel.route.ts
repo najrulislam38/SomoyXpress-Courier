@@ -25,6 +25,12 @@ router.get(
 );
 
 router.patch(
+  "/update-status/:id",
+  withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  ParcelController.updateParcelStatus
+);
+
+router.patch(
   "/cancel/:id",
   withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.cancelParcel
