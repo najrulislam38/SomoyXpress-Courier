@@ -18,6 +18,13 @@ router.get(
   withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.getAllParcel
 );
+
+router.get(
+  "/track/:trackingId",
+  withAuth(UserRole.RECEIVER),
+  ParcelController.parcelTracking
+);
+
 router.get(
   "/:id",
   withAuth(...Object.values(UserRole)),
@@ -34,6 +41,12 @@ router.patch(
   "/cancel/:id",
   withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.cancelParcel
+);
+
+router.patch(
+  "/confirm/:id",
+  withAuth(UserRole.RECEIVER),
+  ParcelController.confirmParcel
 );
 
 export const ParcelRoutes = router;

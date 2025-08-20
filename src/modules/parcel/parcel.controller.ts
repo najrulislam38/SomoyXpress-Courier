@@ -99,17 +99,39 @@ const cancelParcel = catchAsync(
   }
 );
 
-const deleteParcel = catchAsync(
+const confirmParcel = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // const parcelId = req.params.id;
-    // const decodedToken = req.user as JwtPayload;
+    const parcelId = req.params.id;
+    const decodedToken = req.user as JwtPayload;
 
-    // const result = await ParcelServices.getSingleParcel(parcelId, decodedToken);
+    const result = await ParcelServices.confirmParcelFromDB(
+      parcelId,
+      decodedToken
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Parcel Retrieved Successfully",
+      message: "Parcel Delivery Successfully",
+      data: result,
+    });
+  }
+);
+
+const parcelTracking = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const trackingId = req.params.trackingId;
+    const decodedToken = req.user as JwtPayload;
+
+    const result = await ParcelServices.parcelTrackingFromDB(
+      trackingId,
+      decodedToken
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Parcel Delivery Successfully",
       data: result,
     });
   }
@@ -121,5 +143,6 @@ export const ParcelController = {
   getSingleParcel,
   updateParcelStatus,
   cancelParcel,
-  deleteParcel,
+  confirmParcel,
+  parcelTracking,
 };

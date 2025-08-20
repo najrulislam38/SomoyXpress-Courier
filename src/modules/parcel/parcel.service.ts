@@ -244,13 +244,77 @@ const cancelParcelFromDB = async (
 
   return parcel;
 };
-const deleteParcelFromDB = async () => {};
+const confirmParcelFromDB = async (
+  parcelId: string,
+  decodedToken: JwtPayload
+) => {
+  const parcel = await Parcel.findById(parcelId);
+
+  if (!parcel) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found.");
+  }
+
+  if (parcel.receiver.toString() !== decodedToken.userId) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized Access");
+  }
+
+  if (parcel.currentStatus === ParcelStatus.DELIVERED) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Already Parcel delivery confirmed"
+    );
+  }
+
+  const statusLog: IStatusLog = {
+    status: ParcelStatus.DELIVERED,
+    location: parcel.deliveryAddress,
+    timestamp: new Date(),
+    updatedBy: decodedToken.email,
+    note: `Delivery confirmed by ${decodedToken.email}`,
+  };
+
+  parcel.currentStatus = ParcelStatus.DELIVERED;
+  parcel.statusLogs.push(statusLog);
+  await parcel.save();
+
+  return parcel;
+};
+
+const parcelTrackingFromDB = async (
+  trackingId: string,
+  decodedToken: JwtPayload
+) => {
+  const parcel = await Parcel.findOne({ trackingId: trackingId });
+
+  if (!parcel) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found.");
+  }
+
+  if (parcel.receiver.toString() !== decodedToken.userId) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized Access");
+  }
+
+  const trackingInfo = {
+    trackingId: parcel.trackingId,
+    currentStatus: parcel.currentStatus,
+    statusLogs: parcel.statusLogs.map((track) => ({
+      status: track.status,
+      timeStamp: track.timestamp,
+      location: track.location,
+      note: track.note,
+    })),
+    expectedDeliveryDate: parcel.expectedDeliveryDate,
+  };
+
+  return trackingInfo;
+};
 
 export const ParcelServices = {
   createParcelFromDB,
   getAllParcel,
   getSingleParcel,
   updateStatusFromDB,
-  deleteParcelFromDB,
+  confirmParcelFromDB,
   cancelParcelFromDB,
+  parcelTrackingFromDB,
 };
