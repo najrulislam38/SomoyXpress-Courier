@@ -25,6 +25,25 @@ const createParcel = catchAsync(
   }
 );
 
+const getAllParcel = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+
+    const result = await ParcelServices.getAllParcel(decodedToken);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User Data Updated Successfully",
+      meta: {
+        total: result.meta as number,
+      },
+      data: result.data,
+    });
+  }
+);
+
 export const ParcelController = {
   createParcel,
+  getAllParcel,
 };

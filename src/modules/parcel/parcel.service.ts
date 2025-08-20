@@ -6,6 +6,7 @@ import { ParcelStatus } from "./parcel.interface";
 import { Parcel } from "./parcel.model";
 import calculatePrice from "../../utils/calculatePrice";
 import generateTrackingId from "../../utils/generateTrackingId";
+import { JwtPayload } from "jsonwebtoken";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const createParcelFromDB = async (userId: string, payload: any) => {
@@ -87,4 +88,35 @@ const createParcelFromDB = async (userId: string, payload: any) => {
   return parcel;
 };
 
-export const ParcelServices = { createParcelFromDB };
+const getAllParcel = async (decodedToken: JwtPayload) => {
+  if (!decodedToken) {
+    throw new AppError(403, "This route not permitted for you");
+  }
+
+  let parcels;
+
+  let totalParcel;
+
+  if (decodedToken.role === "SENDER") {
+    parcels = await Parcel.find({ sender: decodedToken.userId });
+    totalParcel = await Parcel.countDocuments({ sender: decodedToken.userId });
+  } else if (decodedToken.role === "RECEIVER") {
+    parcels = await Parcel.find({ receiver: decodedToken.userId });
+    totalParcel = await Parcel.countDocuments({
+      receiver: decodedToken.userId,
+    });
+  } else if (
+    decodedToken.role === "ADMIN" ||
+    decodedToken.role === "SUPER_ADMIN"
+  ) {
+    parcels = await Parcel.find();
+    totalParcel = await Parcel.countDocuments();
+  }
+
+  return {
+    data: parcels,
+    meta: totalParcel,
+  };
+};
+
+export const ParcelServices = { createParcelFromDB, getAllParcel };
