@@ -2,12 +2,13 @@ import { User } from "../user/user.model";
 // import { IUser, UserRole } from "../user/user.interface";
 import AppError from "../../errorHelpers/AppError";
 import mongoose from "mongoose";
-import { ParcelStatus } from "./parcel.interface";
+import { IStatusLog, ParcelStatus } from "./parcel.interface";
 import { Parcel } from "./parcel.model";
 import calculatePrice from "../../utils/calculatePrice";
 import generateTrackingId from "../../utils/generateTrackingId";
 import { JwtPayload } from "jsonwebtoken";
 import httpStatus from "http-status-codes";
+import { UserRole } from "../user/user.interface";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const createParcelFromDB = async (userId: string, payload: any) => {
@@ -78,7 +79,7 @@ const createParcelFromDB = async (userId: string, payload: any) => {
         location: location || pickupAddress,
         updatedBy: senderData.email,
         timestamp: new Date(),
-        specialInstructions: parcelData.specialInstructions,
+        note: parcelData.note,
       },
     ],
     expectedDeliveryDate: parcelData.expectedDeliveryDate,
@@ -137,13 +138,73 @@ const getSingleParcel = async (parcelId: string, decodedToken: JwtPayload) => {
     parcel.sender.toString() !== decodedToken.userId &&
     parcel.receiver.toString() !== decodedToken.userId
   ) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Unauthorized access");
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Unauthorized access. You con't get single parcel"
+    );
   }
+
+  // if(decodedToken.)
+
   return parcel;
 };
+
+const updateStatusFromDB = async () => {
+  console.log("");
+};
+
+const cancelParcelFromDB = async (
+  parcelId: string,
+  decodedToken: JwtPayload
+) => {
+  const parcel = await Parcel.findById(parcelId);
+
+  if (!parcel) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found.");
+  }
+
+  if (
+    decodedToken.role !== UserRole.ADMIN &&
+    decodedToken.role !== UserRole.SUPER_ADMIN &&
+    parcel.sender.toString() !== decodedToken.userId
+  ) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Unauthorized access form cancel parcel"
+    );
+  }
+
+  if (
+    parcel.currentStatus !== ParcelStatus.REQUESTED &&
+    parcel.currentStatus !== ParcelStatus.APPROVED
+  ) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Parcel cannot be cancelled at this stage"
+    );
+  }
+
+  const statusLogs: IStatusLog = {
+    status: ParcelStatus.CANCELLED,
+    location: parcel.pickupAddress,
+    timestamp: new Date(),
+    updatedBy: decodedToken.email,
+    note: "Parcel Cancelled.",
+  };
+
+  parcel.currentStatus = ParcelStatus.CANCELLED;
+  parcel.statusLogs.push(statusLogs);
+  await parcel.save();
+
+  return parcel;
+};
+const deleteParcelFromDB = async () => {};
 
 export const ParcelServices = {
   createParcelFromDB,
   getAllParcel,
   getSingleParcel,
+  updateStatusFromDB,
+  deleteParcelFromDB,
+  cancelParcelFromDB,
 };

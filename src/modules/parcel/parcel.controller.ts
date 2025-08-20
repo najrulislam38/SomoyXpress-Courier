@@ -59,8 +59,62 @@ const getSingleParcel = catchAsync(
   }
 );
 
+const updateParcelStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // const parcelId = req.params.id;
+    // const decodedToken = req.user as JwtPayload;
+
+    // const result = await ParcelServices.getSingleParcel(parcelId, decodedToken);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Parcel Retrieved Successfully",
+      data: "result",
+    });
+  }
+);
+
+const cancelParcel = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const parcelId = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+
+    const result = await ParcelServices.cancelParcelFromDB(
+      parcelId,
+      decodedToken
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Parcel Canceled Successfully",
+      data: result,
+    });
+  }
+);
+
+const deleteParcel = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // const parcelId = req.params.id;
+    // const decodedToken = req.user as JwtPayload;
+
+    // const result = await ParcelServices.getSingleParcel(parcelId, decodedToken);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Parcel Retrieved Successfully",
+      data: result,
+    });
+  }
+);
+
 export const ParcelController = {
   createParcel,
   getAllParcel,
   getSingleParcel,
+  updateParcelStatus,
+  cancelParcel,
+  deleteParcel,
 };

@@ -19,8 +19,8 @@ export interface IStatusLog {
   status: ParcelStatus;
   location: string;
   timestamp: Date;
-  updatedBy?: string[];
-  specialInstructions?: string;
+  updatedBy?: string;
+  note?: string;
 }
 
 export interface IParcel {

@@ -12,7 +12,7 @@ const statusLogZodSchema = z.object({
     .optional()
     .default(() => new Date()),
   updatedBy: z.string().optional(),
-  specialInstructions: z.string().optional(),
+  note: z.string().optional(),
 });
 
 export const crateParcelZodSchema = z.object({

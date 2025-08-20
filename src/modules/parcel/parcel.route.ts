@@ -24,4 +24,10 @@ router.get(
   ParcelController.getSingleParcel
 );
 
+router.patch(
+  "/cancel/:id",
+  withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  ParcelController.cancelParcel
+);
+
 export const ParcelRoutes = router;
