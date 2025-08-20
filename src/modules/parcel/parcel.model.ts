@@ -24,6 +24,7 @@ const parcelSchema = new Schema<IParcel>(
     },
     statusLogs: [
       {
+        // _id: false,
         status: {
           type: String,
           enum: Object.values(ParcelStatus),

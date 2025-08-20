@@ -13,11 +13,15 @@ router.post(
   validateRequestUseZod(crateParcelZodSchema),
   ParcelController.createParcel
 );
-
 router.get(
   "/",
   withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.getAllParcel
+);
+router.get(
+  "/:id",
+  withAuth(...Object.values(UserRole)),
+  ParcelController.getSingleParcel
 );
 
 export const ParcelRoutes = router;

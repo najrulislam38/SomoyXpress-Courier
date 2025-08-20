@@ -16,7 +16,7 @@ const statusLogZodSchema = z.object({
 });
 
 export const crateParcelZodSchema = z.object({
-  recipientEmail: z.email(),
+  receiverEmail: z.email(),
   pickupAddress: z.string(),
   deliveryAddress: z.string(),
   weight: z

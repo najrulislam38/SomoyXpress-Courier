@@ -18,7 +18,7 @@ const createParcel = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "User Data Updated Successfully",
+      message: "Parcel Created Successfully",
 
       data: result,
     });
@@ -34,7 +34,7 @@ const getAllParcel = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "User Data Updated Successfully",
+      message: "Parcels Retrieved Successfully",
       meta: {
         total: result.meta as number,
       },
@@ -43,7 +43,24 @@ const getAllParcel = catchAsync(
   }
 );
 
+const getSingleParcel = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const parcelId = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+
+    const result = await ParcelServices.getSingleParcel(parcelId, decodedToken);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Parcel Retrieved Successfully",
+      data: result,
+    });
+  }
+);
+
 export const ParcelController = {
   createParcel,
   getAllParcel,
+  getSingleParcel,
 };
