@@ -9,7 +9,8 @@ const parcelSchema = new Schema<IParcel>(
     pickupAddress: { type: String, required: true },
     deliveryAddress: { type: String, required: true },
     weight: { type: Number, required: true, min: 0.1 },
-    price: { type: Number, required: true, min: 0 },
+    amountCollect: { type: Number, required: true, min: 0 },
+    deliveryFee: { type: Number, required: true, min: 0 },
     description: { type: String },
     currentStatus: {
       type: String,
@@ -30,7 +31,7 @@ const parcelSchema = new Schema<IParcel>(
         },
         location: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },
-        updatedBy: { type: String, required: true },
+        updatedBy: { type: [String], default: [] },
         specialInstructions: { type: String },
       },
     ],

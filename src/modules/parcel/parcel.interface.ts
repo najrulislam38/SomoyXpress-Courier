@@ -19,7 +19,7 @@ export interface IStatusLog {
   status: ParcelStatus;
   location: string;
   timestamp: Date;
-  updatedBy: string;
+  updatedBy?: string[];
   specialInstructions?: string;
 }
 
@@ -30,7 +30,8 @@ export interface IParcel {
   pickupAddress: string;
   deliveryAddress: string;
   weight: number;
-  price: number;
+  amountCollect: number;
+  deliveryFee: number;
   description?: string;
   currentStatus: ParcelStatus;
   deliveryTypes: DeliveryType;

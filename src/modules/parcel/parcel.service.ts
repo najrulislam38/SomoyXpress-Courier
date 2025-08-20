@@ -1,16 +1,11 @@
 import { User } from "../user/user.model";
 // import { IUser, UserRole } from "../user/user.interface";
 import AppError from "../../errorHelpers/AppError";
-import crypto from "crypto";
 import mongoose from "mongoose";
 import { ParcelStatus } from "./parcel.interface";
 import { Parcel } from "./parcel.model";
-
-function calculatePrice(weight: number): number {
-  const basePrice = 50;
-  const perKgPrice = 20;
-  return basePrice + Number(weight) * perKgPrice;
-}
+import calculatePrice from "../../utils/calculatePrice";
+import generateTrackingId from "../../utils/generateTrackingId";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const createParcelFromDB = async (userId: string, payload: any) => {
@@ -19,10 +14,13 @@ const createParcelFromDB = async (userId: string, payload: any) => {
     // recipientName,
     // recipientPhone,
     // recipientAddress,
+    pickupAddress,
+    deliveryAddress,
+    weight,
+    amountCollect,
+    location,
     ...parcelData
   } = payload;
-
-  console.log(userId);
 
   const isRecipientExist = await User.findOne({
     email: recipientEmail,
@@ -58,28 +56,30 @@ const createParcelFromDB = async (userId: string, payload: any) => {
   }
 
   // Generate tracking ID
-  const trackingId = `TRK-${new Date()
-    .toISOString()
-    .slice(0, 10)
-    .replace(/-/g, "")}-${crypto.randomBytes(8).toString("hex")}`;
+  const trackingId = generateTrackingId();
 
-  const price = calculatePrice(parcelData.weight);
+  const deliveryFee = calculatePrice(weight, amountCollect);
 
   const parcelPayload = {
     trackingId,
     sender: new mongoose.Types.ObjectId(userId),
     receiver: new mongoose.Types.ObjectId(isRecipientExist._id),
-    pickupAddress: parcelData.pickupAddress,
-    deliveryAddress: parcelData.deliveryAddress,
-    weight: parcelData.weight,
-    price,
+    pickupAddress: pickupAddress,
+    deliveryAddress: deliveryAddress,
+    weight: weight,
+    amountCollect,
+    deliveryFee,
+    description: parcelData.description,
     statusLogs: [
       {
         status: ParcelStatus.REQUESTED,
-        location: parcelData.location,
+        location: location || pickupAddress,
         updatedBy: senderData.email,
+        timestamp: new Date(),
+        specialInstructions: parcelData.specialInstructions,
       },
     ],
+    expectedDeliveryDate: parcelData.expectedDeliveryDate,
   };
 
   const parcel = await Parcel.create(parcelPayload);
