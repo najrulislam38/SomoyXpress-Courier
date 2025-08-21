@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { envVariables } from "./config/env";
 import app from "./app";
+import { seedSuperAdmin } from "./utils/seedSuperAdmin";
 
 let server: Server;
 
@@ -30,4 +31,7 @@ const startServer = async () => {
   }
 };
 
-startServer();
+(async () => {
+  await startServer();
+  await seedSuperAdmin();
+})();
