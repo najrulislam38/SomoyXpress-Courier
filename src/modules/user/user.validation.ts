@@ -7,7 +7,6 @@ export const createUserZodSchema = z.object({
     .min(3, { message: "Name must be at least 2 characters long." })
     .max(50, { message: "Name cannot exceed 50 characters." }),
   email: z
-    .string()
     .email({ message: "Invalid email address format." })
     .min(5, { message: "Email must be at least 5 characters long." })
     .max(100, { message: "Email cannot exceed 100 characters." }),
@@ -27,6 +26,8 @@ export const createUserZodSchema = z.object({
     message:
       "Phone number must be valid for Bangladesh. Format: +8801XXXXXXXXX or 01XXXXXXXXX",
   }),
+  age: z.number().min(15, { error: "Age must be 15 or over" }).optional(),
+  gender: z.enum(["Male", "Female", "Others"]).optional(),
   role: z.enum([UserRole.SENDER, UserRole.RECEIVER]),
   address: z
     .string()
@@ -48,8 +49,8 @@ export const updateUserZodSchema = z.object({
         "Phone number must be valid for Bangladesh. Format: +8801XXXXXXXXX or 01XXXXXXXXX",
     })
     .optional(),
-  age: z.number().min(12, { message: "Age must be 12 or over" }).optional(),
-  role: z.enum([UserRole.SENDER, UserRole.RECEIVER]),
+  age: z.number().min(15, { error: "Age must be 15 or over" }).optional(),
+  gender: z.enum(["Male", "Female", "Others"]).optional(),
   address: z
     .string()
     .max(200, { message: "Address cannot exceed 200 characters." })

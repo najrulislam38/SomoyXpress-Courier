@@ -20,6 +20,7 @@ const userSchema = new Schema<IUser>(
     password: { type: String },
     phone: { type: String, required: true },
     age: { type: Number },
+    gender: { type: String },
     role: {
       type: String,
       enum: Object.values(UserRole),
