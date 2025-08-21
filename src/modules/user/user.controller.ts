@@ -92,13 +92,47 @@ const updateUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
     const updateInformation = req.body;
-    const result = await UserServices.updateUser(userId, updateInformation);
+    const decodedToken = req.user as JwtPayload;
+    const result = await UserServices.updateUserFromDB(
+      userId,
+      updateInformation,
+      decodedToken
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "User Data Updated Successfully",
+      data: result,
+    });
+  }
+);
 
+const blockUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+    const result = await UserServices.blockUserFromDB(userId, decodedToken);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User Blocked Successfully",
+      data: result,
+    });
+  }
+);
+
+const unBlockUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+    const result = await UserServices.unBlockUserFromDB(userId, decodedToken);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User Blocked Successfully",
       data: result,
     });
   }
@@ -111,4 +145,6 @@ export const UserController = {
   updateMe,
   getSingleUser,
   updateUser,
+  blockUser,
+  unBlockUser,
 };

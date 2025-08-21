@@ -38,4 +38,16 @@ router.patch(
   UserController.updateUser
 );
 
+router.patch(
+  "/block/:id",
+  withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.blockUser
+);
+
+router.patch(
+  "/unblock/:id",
+  withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.unBlockUser
+);
+
 export const UserRoutes = router;

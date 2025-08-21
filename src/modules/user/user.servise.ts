@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { IAuthProvider, IUser } from "./user.interface";
+import { IAuthProvider, IUser, UserRole } from "./user.interface";
 import bcryptjs from "bcryptjs";
 import { User } from "./user.model";
 import { envVariables } from "../../config/env";
@@ -83,7 +83,11 @@ const getSingleUserFromDB = async (userId: string) => {
   return user;
 };
 
-const updateUser = async (userId: string, payload: Partial<IUser>) => {
+const updateUserFromDB = async (
+  userId: string,
+  payload: Partial<IUser>,
+  decodedToken: JwtPayload
+) => {
   const user = await User.findById(userId);
 
   if (!user) {
@@ -99,11 +103,73 @@ const updateUser = async (userId: string, payload: Partial<IUser>) => {
   return updatedUser;
 };
 
+const blockUserFromDB = async (userId: string, decodedToken: JwtPayload) => {
+  const isUserExist = await User.findById(userId);
+
+  if (!isUserExist) {
+    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+  }
+
+  if (
+    decodedToken.role === UserRole.ADMIN &&
+    isUserExist.role === UserRole.SUPER_ADMIN
+  ) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+  }
+
+  if (isUserExist.isBlocked) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already Blocked");
+  }
+
+  const blockUser = await User.findByIdAndUpdate(
+    userId,
+    { isBlocked: true },
+    {
+      new: true,
+      select: "-password",
+    }
+  );
+
+  return blockUser;
+};
+
+const unBlockUserFromDB = async (userId: string, decodedToken: JwtPayload) => {
+  const isUserExist = await User.findById(userId);
+
+  if (!isUserExist) {
+    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+  }
+
+  if (
+    decodedToken.role === UserRole.ADMIN &&
+    isUserExist.role === UserRole.SUPER_ADMIN
+  ) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+  }
+
+  if (!isUserExist.isBlocked) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already unblocked");
+  }
+
+  const unblockUser = await User.findByIdAndUpdate(
+    userId,
+    { isBlocked: false },
+    {
+      new: true,
+      select: "-password",
+    }
+  );
+
+  return unblockUser;
+};
+
 export const UserServices = {
   createUserDB,
   getAllUserFromDB,
   getMeFromDB,
   updateMeFromDB,
   getSingleUserFromDB,
-  updateUser,
+  updateUserFromDB,
+  blockUserFromDB,
+  unBlockUserFromDB,
 };

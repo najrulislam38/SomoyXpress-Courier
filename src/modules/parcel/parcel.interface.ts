@@ -3,7 +3,7 @@ import { Schema } from "mongoose";
 export enum ParcelStatus {
   REQUESTED = "REQUESTED",
   APPROVED = "APPROVED",
-  PICKED = "PICKED",
+  DISPATCH = "DISPATCH",
   IN_TRANSIT = "IN_TRANSIT",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
