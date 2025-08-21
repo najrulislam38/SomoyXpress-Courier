@@ -1,4 +1,5 @@
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Server } from "http";
 import mongoose from "mongoose";
 import dotenv from "dotenv";

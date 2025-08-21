@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { envVariables } from "../config/env";
 import { IAuthProvider, IUser, UserRole } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";

@@ -20,6 +20,7 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(express.json());
 

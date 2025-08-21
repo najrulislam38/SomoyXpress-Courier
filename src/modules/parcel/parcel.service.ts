@@ -289,7 +289,11 @@ const deleteParcelFromDB = async (
     throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found.");
   }
 
-  if (decodedToken.userId !== parcel.sender.toString()) {
+  if (
+    decodedToken.role !== UserRole.ADMIN &&
+    decodedToken.role !== UserRole.SUPER_ADMIN &&
+    decodedToken.userId !== parcel.sender.toString()
+  ) {
     throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized Access");
   }
 
