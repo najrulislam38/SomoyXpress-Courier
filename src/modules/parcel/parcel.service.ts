@@ -279,6 +279,35 @@ const confirmParcelFromDB = async (
 
   return parcel;
 };
+const deleteParcelFromDB = async (
+  parcelId: string,
+  decodedToken: JwtPayload
+) => {
+  const parcel = await Parcel.findById(parcelId);
+
+  if (!parcel) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found.");
+  }
+
+  if (decodedToken.userId !== parcel.sender.toString()) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized Access");
+  }
+
+  if (
+    parcel.currentStatus !== ParcelStatus.REQUESTED &&
+    parcel.currentStatus !== ParcelStatus.APPROVED &&
+    parcel.currentStatus !== ParcelStatus.CANCELLED
+  ) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `This Parcel con't deleted in this state ${parcel.currentStatus}`
+    );
+  }
+
+  const deletedParcel = await Parcel.findByIdAndDelete(parcelId);
+
+  return deletedParcel;
+};
 
 const parcelTrackingFromDB = async (
   trackingId: string,
@@ -317,4 +346,5 @@ export const ParcelServices = {
   confirmParcelFromDB,
   cancelParcelFromDB,
   parcelTrackingFromDB,
+  deleteParcelFromDB,
 };

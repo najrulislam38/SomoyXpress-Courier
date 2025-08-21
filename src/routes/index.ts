@@ -15,7 +15,7 @@ const moduleRoutes = [
     route: AuthRoutes,
   },
   {
-    path: "/parcel",
+    path: "/parcels",
     route: ParcelRoutes,
   },
 ];

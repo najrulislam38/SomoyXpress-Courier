@@ -49,4 +49,10 @@ router.patch(
   ParcelController.confirmParcel
 );
 
+router.delete(
+  "/delete/:id",
+  withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  ParcelController.deleteParcel
+);
+
 export const ParcelRoutes = router;
