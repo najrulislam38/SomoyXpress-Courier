@@ -9,13 +9,13 @@ const router = Router();
 
 router.post(
   "/create",
-  withAuth(UserRole.SENDER),
+  withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   validateRequestUseZod(crateParcelZodSchema),
   ParcelController.createParcel
 );
 router.get(
   "/",
-  withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  withAuth(...Object.values(UserRole)),
   ParcelController.getAllParcel
 );
 

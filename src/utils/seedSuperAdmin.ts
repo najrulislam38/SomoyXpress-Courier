@@ -39,7 +39,10 @@ export const seedSuperAdmin = async () => {
     };
 
     const superAmin = await User.create(adminPayload);
-    console.log(superAmin);
+
+    if (envVariables.NODE_ENV === "development") {
+      console.log(superAmin);
+    }
 
     console.log("Super Admin Created Successfully.");
   } catch (error) {
