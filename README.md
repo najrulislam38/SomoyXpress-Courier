@@ -4,7 +4,7 @@ A secure, modular, and role-based backend API for a parcel delivery system inspi
 
 ## 📋 Project Overview
 
-SomoyExpress Courier Service API provides a complete backend solution for _Parcel delivery management_ with three distinct user roles (admin, super_admin, sender, receiver). It includes authentication, authorization, parcel management, status tracking, and payment integration.
+SomoyExpress Courier Service API provides a complete backend solution for _Parcel delivery management_ with three distinct user roles (Admin, Super_Admin, Sender, Receiver). It includes authentication, authorization, parcel management, status tracking, and payment integration.
 
 ## ✨ Features
 

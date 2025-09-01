@@ -1,7 +1,7 @@
 import z from "zod";
 import { UserRole } from "./user.interface";
 
-export const createUserZodSchema = z.object({
+export const createSenderUserZodSchema = z.object({
   name: z
     .string({ error: "Name must be string." })
     .min(3, { message: "Name must be at least 2 characters long." })
@@ -28,7 +28,7 @@ export const createUserZodSchema = z.object({
   }),
   age: z.number().min(15, { error: "Age must be 15 or over" }).optional(),
   gender: z.enum(["Male", "Female", "Others"]).optional(),
-  role: z.enum([UserRole.SENDER, UserRole.RECEIVER]),
+  role: z.enum([UserRole.SENDER]),
   address: z
     .string()
     .max(200, { message: "Address cannot exceed 200 characters." })

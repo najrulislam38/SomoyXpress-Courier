@@ -151,7 +151,7 @@ const deleteParcel = catchAsync(
       statusCode: httpStatus.OK,
       success: true,
       message: "Parcel Deleted Successfully",
-      data: result,
+      data: null,
     });
   }
 );

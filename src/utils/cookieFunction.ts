@@ -11,6 +11,7 @@ export const setCookie = (res: Response, tokenInfo: ICookieToken) => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      path: "/",
     });
   }
   if (tokenInfo.refreshToken) {
@@ -18,6 +19,7 @@ export const setCookie = (res: Response, tokenInfo: ICookieToken) => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      path: "/",
     });
   }
 };

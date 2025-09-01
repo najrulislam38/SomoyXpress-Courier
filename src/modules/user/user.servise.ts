@@ -6,6 +6,8 @@ import { envVariables } from "../../config/env";
 import AppError from "../../errorHelpers/AppError";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
+import { userSearchableFields } from "./user.constant";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 const createUserDB = async (payload: Partial<IUser>) => {
   const { email, password, phone, ...rest } = payload;
@@ -30,13 +32,20 @@ const createUserDB = async (payload: Partial<IUser>) => {
   return user;
 };
 
-const getAllUserFromDB = async () => {
-  const users = await User.find().select("-password");
-  const totalUser = await User.countDocuments();
+const getAllUserFromDB = async (query: Record<string, string>) => {
+  const userQuery = new QueryBuilder(User.find(), query || {})
+    .search(userSearchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const users = await userQuery.build().select("-password");
+  const meta = await userQuery.getMeta();
 
   return {
     data: users,
-    meta: totalUser,
+    meta,
   };
 };
 
@@ -132,6 +141,35 @@ const blockUserFromDB = async (userId: string, decodedToken: JwtPayload) => {
 
   return blockUser;
 };
+const deleteUserFromDB = async (userId: string, decodedToken: JwtPayload) => {
+  const isUserExist = await User.findById(userId);
+
+  if (!isUserExist) {
+    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+  }
+
+  if (
+    decodedToken.role === UserRole.ADMIN &&
+    isUserExist.role === UserRole.SUPER_ADMIN
+  ) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+  }
+
+  if (isUserExist.isDeleted) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already Deleted");
+  }
+
+  const deletedUser = await User.findByIdAndUpdate(
+    userId,
+    { isDeleted: true },
+    {
+      new: true,
+      select: "-password",
+    }
+  );
+
+  return deletedUser;
+};
 
 const unBlockUserFromDB = async (userId: string, decodedToken: JwtPayload) => {
   const isUserExist = await User.findById(userId);
@@ -172,4 +210,5 @@ export const UserServices = {
   updateUserFromDB,
   blockUserFromDB,
   unBlockUserFromDB,
+  deleteUserFromDB,
 };

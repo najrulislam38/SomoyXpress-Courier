@@ -27,15 +27,15 @@ const createUser = catchAsync(
 
 const getAllUsers = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await UserServices.getAllUserFromDB();
+    const result = await UserServices.getAllUserFromDB(
+      req.query as Record<string, string>
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Users Retrieved Successfully",
-      meta: {
-        total: result.meta,
-      },
+      meta: result.meta,
       data: result.data,
     });
   }
@@ -49,7 +49,7 @@ const getMe = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Request Updated Successfully",
+      message: "User Profile Retrieved Successfully",
 
       data: result,
     });
@@ -123,6 +123,21 @@ const blockUser = catchAsync(
   }
 );
 
+const DeleteUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+    const result = await UserServices.deleteUserFromDB(userId, decodedToken);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User Deleted Successfully",
+      data: result,
+    });
+  }
+);
+
 const unBlockUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
@@ -147,4 +162,5 @@ export const UserController = {
   updateUser,
   blockUser,
   unBlockUser,
+  DeleteUser,
 };

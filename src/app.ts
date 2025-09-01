@@ -7,6 +7,7 @@ import { envVariables } from "./config/env";
 import "./config/passport";
 import notFound from "./middleware/notFound";
 import { globalErrorHandler } from "./middleware/globalErrorHandler";
+import cors from "cors";
 
 const app = express();
 
@@ -16,6 +17,13 @@ app.use(
     secret: envVariables.EXPRESS_SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+  })
+);
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
   })
 );
 app.use(passport.initialize());

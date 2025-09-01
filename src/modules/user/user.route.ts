@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { UserController } from "./user.controller";
 import { validateRequestUseZod } from "../../middleware/validateRequestUseZod";
-import { createUserZodSchema, updateUserZodSchema } from "./user.validation";
+import {
+  createSenderUserZodSchema,
+  updateUserZodSchema,
+} from "./user.validation";
 import { withAuth } from "../../middleware/withAuth";
 import { UserRole } from "./user.interface";
 
@@ -9,7 +12,7 @@ const router = Router();
 
 router.post(
   "/register",
-  validateRequestUseZod(createUserZodSchema),
+  validateRequestUseZod(createSenderUserZodSchema),
   UserController.createUser
 );
 
@@ -42,6 +45,12 @@ router.patch(
   "/block/:id",
   withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   UserController.blockUser
+);
+
+router.patch(
+  "/:id/delete",
+  withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.DeleteUser
 );
 
 router.patch(
