@@ -16,7 +16,7 @@ const statusLogZodSchema = z.object({
 });
 
 export const crateParcelZodSchema = z.object({
-  receiverEmail: z.email(),
+  receiver: z.string(),
   pickupAddress: z.string(),
   deliveryAddress: z.string(),
   weight: z
@@ -42,6 +42,6 @@ export const crateParcelZodSchema = z.object({
     .default(DeliveryType.Normal_Delivery),
   statusLogs: z.array(statusLogZodSchema).default([]),
   isBlocked: z.boolean().default(false),
-  expectedDeliveryDate: z.date().optional(),
-  actualDeliveryDate: z.date().optional(),
+  expectedDeliveryDate: z.string().optional(),
+  actualDeliveryDate: z.string().optional(),
 });

@@ -32,25 +32,25 @@ router.get(
 );
 
 router.patch(
-  "/update-status/:id",
+  "/:id/update-status",
   withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.updateParcelStatus
 );
 
 router.patch(
-  "/cancel/:id",
+  "/:id/cancel",
   withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.cancelParcel
 );
 
 router.patch(
-  "/confirm/:id",
+  "/:id/confirm",
   withAuth(UserRole.RECEIVER),
   ParcelController.confirmParcel
 );
 
 router.delete(
-  "/delete/:id",
+  "/:id/delete",
   withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.deleteParcel
 );

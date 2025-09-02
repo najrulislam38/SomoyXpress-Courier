@@ -41,6 +41,22 @@ const getAllUsers = catchAsync(
   }
 );
 
+const getAllReceiver = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserServices.getAllReceiverFromDB(
+      req.query as Record<string, string>
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Receiver Retrieved Successfully",
+      meta: result.meta,
+      data: result.data,
+    });
+  }
+);
+
 const getMe = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user as JwtPayload;
@@ -156,6 +172,7 @@ const unBlockUser = catchAsync(
 export const UserController = {
   createUser,
   getAllUsers,
+  getAllReceiver,
   getMe,
   updateMe,
   getSingleUser,

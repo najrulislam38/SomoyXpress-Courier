@@ -49,6 +49,25 @@ const getAllUserFromDB = async (query: Record<string, string>) => {
   };
 };
 
+const getAllReceiverFromDB = async (query: Record<string, string>) => {
+  const userQuery = new QueryBuilder(User.find(), query || {})
+    .search(userSearchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const users = await userQuery.build().select("-password");
+  const total = await User.countDocuments({ query });
+
+  return {
+    data: users,
+    meta: {
+      total,
+    },
+  };
+};
+
 const getMeFromDB = async (decodedToken: JwtPayload) => {
   const userId = decodedToken.userId;
   const user = await User.findById(userId);
@@ -204,6 +223,7 @@ const unBlockUserFromDB = async (userId: string, decodedToken: JwtPayload) => {
 export const UserServices = {
   createUserDB,
   getAllUserFromDB,
+  getAllReceiverFromDB,
   getMeFromDB,
   updateMeFromDB,
   getSingleUserFromDB,

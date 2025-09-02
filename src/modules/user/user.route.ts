@@ -30,6 +30,12 @@ router.get(
   UserController.getAllUsers
 );
 router.get(
+  "/all-receiver",
+  withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SENDER),
+  UserController.getAllReceiver
+);
+
+router.get(
   "/:id",
   withAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   UserController.getSingleUser

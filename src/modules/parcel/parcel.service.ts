@@ -8,13 +8,13 @@ import calculatePrice from "../../utils/calculatePrice";
 import generateTrackingId from "../../utils/generateTrackingId";
 import { JwtPayload } from "jsonwebtoken";
 import httpStatus from "http-status-codes";
-import { UserRole } from "../user/user.interface";
+import { IUser, UserRole } from "../user/user.interface";
 import { isValidStatusTransition } from "../../utils/statusChecker";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const createParcelFromDB = async (userId: string, payload: any) => {
   const {
-    receiverEmail,
+    receiver,
     // recipientName,
     // recipientPhone,
     // recipientAddress,
@@ -26,10 +26,7 @@ const createParcelFromDB = async (userId: string, payload: any) => {
     ...parcelData
   } = payload;
 
-  const isRecipientExist = await User.findOne({
-    email: receiverEmail,
-    role: "RECEIVER",
-  });
+  const isRecipientExist = await User.findById(receiver);
 
   //   if (!isRecipientExist) {
   //     const recipientPayload: IUser = {
@@ -50,7 +47,11 @@ const createParcelFromDB = async (userId: string, payload: any) => {
   //   }
 
   if (!isRecipientExist) {
-    throw new AppError(404, `There is no receiver in this ${receiverEmail}`);
+    throw new AppError(404, `There is no receiver in this ${receiver}`);
+  }
+
+  if (isRecipientExist.role !== UserRole.RECEIVER) {
+    throw new AppError(404, ` ${receiver} is not a Receiver`);
   }
 
   const senderData = await User.findById(userId);
@@ -78,9 +79,9 @@ const createParcelFromDB = async (userId: string, payload: any) => {
       {
         status: ParcelStatus.REQUESTED,
         location: location || pickupAddress,
-        updatedBy: senderData.email,
+        updatedBy: senderData._id,
         timestamp: new Date(),
-        note: parcelData.note,
+        note: parcelData?.note,
       },
     ],
     expectedDeliveryDate: parcelData.expectedDeliveryDate,
@@ -127,17 +128,44 @@ const getAllParcel = async (decodedToken: JwtPayload) => {
 };
 
 const getSingleParcel = async (parcelId: string, decodedToken: JwtPayload) => {
-  const parcel = await Parcel.findById(parcelId);
+  const parcel = await Parcel.findById(parcelId)
+    .populate("sender")
+    .populate("receiver");
 
   if (!parcel) {
     throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found.");
   }
 
+  if (decodedToken.role === "ADMIN" || decodedToken.role === "SUPER_ADMIN") {
+    return parcel;
+  }
+
+  const sender =
+    parcel.sender && typeof parcel.sender === "object" && "_id" in parcel.sender
+      ? (parcel.sender as unknown as IUser)
+      : undefined;
+  const receiver =
+    parcel.receiver &&
+    typeof parcel.receiver === "object" &&
+    "_id" in parcel.receiver
+      ? (parcel.receiver as unknown as IUser)
+      : undefined;
+
+  if (!sender || !receiver) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Sender or Receiver information is missing."
+    );
+  }
+
+  const senderId = sender._id?.toString() ?? "";
+  const receiverId = receiver._id?.toString() ?? "";
+
   if (
     decodedToken.role !== "ADMIN" &&
     decodedToken.role !== "SUPER_ADMIN" &&
-    parcel.sender.toString() !== decodedToken.userId &&
-    parcel.receiver.toString() !== decodedToken.userId
+    senderId !== decodedToken.userId &&
+    receiverId !== decodedToken.userId
   ) {
     throw new AppError(
       httpStatus.UNAUTHORIZED,
@@ -183,7 +211,7 @@ const updateStatusFromDB = async (
     status,
     location: location || parcel.deliveryAddress,
     timestamp: new Date(),
-    updatedBy: decodedToken.email,
+    updatedBy: decodedToken.userId,
     note: note || `Status updated to ${status}`,
   };
 
@@ -234,7 +262,7 @@ const cancelParcelFromDB = async (
     status: ParcelStatus.CANCELLED,
     location: parcel.pickupAddress,
     timestamp: new Date(),
-    updatedBy: decodedToken.email,
+    updatedBy: decodedToken.useId,
     note: "Parcel Cancelled.",
   };
 
@@ -269,7 +297,7 @@ const confirmParcelFromDB = async (
     status: ParcelStatus.DELIVERED,
     location: parcel.deliveryAddress,
     timestamp: new Date(),
-    updatedBy: decodedToken.email,
+    updatedBy: decodedToken.useId,
     note: `Delivery confirmed by ${decodedToken.email}`,
   };
 
