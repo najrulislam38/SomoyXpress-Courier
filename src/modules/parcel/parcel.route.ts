@@ -19,17 +19,7 @@ router.get(
   ParcelController.getAllParcel
 );
 
-router.get(
-  "/track/:trackingId",
-  withAuth(UserRole.RECEIVER),
-  ParcelController.parcelTracking
-);
-
-router.get(
-  "/:id",
-  withAuth(...Object.values(UserRole)),
-  ParcelController.getSingleParcel
-);
+router.get("/track/:trackingId", ParcelController.parcelTracking);
 
 router.patch(
   "/:id/update-status",
@@ -41,6 +31,24 @@ router.patch(
   "/:id/cancel",
   withAuth(UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   ParcelController.cancelParcel
+);
+
+router.get(
+  "/incoming-parcel",
+  withAuth(UserRole.RECEIVER),
+  ParcelController.getIncomingParcel
+);
+
+router.get(
+  "/delivery-history",
+  withAuth(UserRole.RECEIVER),
+  ParcelController.getParcelDeliveryHistory
+);
+
+router.get(
+  "/:id",
+  withAuth(...Object.values(UserRole)),
+  ParcelController.getSingleParcel
 );
 
 router.patch(

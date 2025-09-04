@@ -1,1 +1,7 @@
-export const parcelSearchableFields = ["trackingId", "sender", "receiver"];
+export const parcelSearchableFields = [
+  "trackingId",
+  "sender",
+  "receiver",
+  "pickupAddress",
+  "deliveryAddress",
+];

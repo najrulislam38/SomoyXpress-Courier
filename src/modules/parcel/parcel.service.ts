@@ -10,6 +10,8 @@ import { JwtPayload } from "jsonwebtoken";
 import httpStatus from "http-status-codes";
 import { IUser, UserRole } from "../user/user.interface";
 import { isValidStatusTransition } from "../../utils/statusChecker";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { Request } from "express";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const createParcelFromDB = async (userId: string, payload: any) => {
@@ -272,6 +274,7 @@ const cancelParcelFromDB = async (
 
   return parcel;
 };
+
 const confirmParcelFromDB = async (
   parcelId: string,
   decodedToken: JwtPayload
@@ -307,6 +310,75 @@ const confirmParcelFromDB = async (
 
   return parcel;
 };
+
+const getIncomingParcelFromDB = async (
+  req: Request,
+  decodedToken: JwtPayload
+) => {
+  const queryObj = { ...req.query, receiver: decodedToken?.userId };
+
+  const queryBuilder = new QueryBuilder(
+    Parcel.find().populate("sender", "name email phone"),
+    queryObj
+  );
+
+  const modelQuery = queryBuilder
+    .filter()
+    .search(["trackingId", "pickupAddress", "deliveryAddress"])
+    .sort()
+    .fields()
+    .paginate()
+    .build();
+
+  const parcels = await modelQuery;
+
+  const meta = await queryBuilder.getMeta();
+
+  return {
+    data: parcels,
+    meta,
+  };
+};
+
+const getParcelDeliveryHistoryFromDB = async (
+  req: Request,
+  decodedToken: JwtPayload
+) => {
+  const queryObj: Record<string, any> = {
+    ...req.query,
+    receiver: decodedToken?.userId,
+    currentStatus: {
+      $in: [
+        ParcelStatus.DELIVERED,
+        ParcelStatus.CANCELLED,
+        ParcelStatus.RETURNED,
+      ],
+    },
+  };
+
+  const queryBuilder = new QueryBuilder(
+    Parcel.find().populate("sender", "name email phone"),
+    queryObj
+  );
+
+  const modelQuery = queryBuilder
+    .filter()
+    .search(["trackingId", "pickupAddress", "deliveryAddress"])
+    .sort()
+    .fields()
+    .paginate()
+    .build();
+
+  const parcels = await modelQuery;
+
+  const meta = await queryBuilder.getMeta();
+
+  return {
+    data: parcels,
+    meta,
+  };
+};
+
 const deleteParcelFromDB = async (
   parcelId: string,
   decodedToken: JwtPayload
@@ -341,18 +413,11 @@ const deleteParcelFromDB = async (
   return deletedParcel;
 };
 
-const parcelTrackingFromDB = async (
-  trackingId: string,
-  decodedToken: JwtPayload
-) => {
+const parcelTrackingFromDB = async (trackingId: string) => {
   const parcel = await Parcel.findOne({ trackingId: trackingId });
 
   if (!parcel) {
     throw new AppError(httpStatus.BAD_REQUEST, "Parcel Not Found.");
-  }
-
-  if (parcel.receiver.toString() !== decodedToken.userId) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized Access");
   }
 
   const trackingInfo = {
@@ -379,4 +444,6 @@ export const ParcelServices = {
   cancelParcelFromDB,
   parcelTrackingFromDB,
   deleteParcelFromDB,
+  getIncomingParcelFromDB,
+  getParcelDeliveryHistoryFromDB,
 };

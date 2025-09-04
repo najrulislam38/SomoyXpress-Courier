@@ -118,15 +118,50 @@ const confirmParcel = catchAsync(
   }
 );
 
+const getIncomingParcel = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+
+    const result = await ParcelServices.getIncomingParcelFromDB(
+      req,
+      decodedToken
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Parcel Delivery Successfully",
+      meta: result.meta,
+      data: result.data,
+    });
+  }
+);
+
+const getParcelDeliveryHistory = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const parcelId = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+
+    const result = await ParcelServices.getParcelDeliveryHistoryFromDB(
+      req,
+      decodedToken
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Parcel Delivery Successfully",
+      meta: result.meta,
+      data: result.data,
+    });
+  }
+);
+
 const parcelTracking = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const trackingId = req.params.trackingId;
-    const decodedToken = req.user as JwtPayload;
 
-    const result = await ParcelServices.parcelTrackingFromDB(
-      trackingId,
-      decodedToken
-    );
+    const result = await ParcelServices.parcelTrackingFromDB(trackingId);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -165,4 +200,6 @@ export const ParcelController = {
   confirmParcel,
   parcelTracking,
   deleteParcel,
+  getIncomingParcel,
+  getParcelDeliveryHistory,
 };
