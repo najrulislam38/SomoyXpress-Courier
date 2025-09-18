@@ -94,38 +94,46 @@ const createParcelFromDB = async (userId: string, payload: any) => {
   return parcel;
 };
 
-const getAllParcel = async (decodedToken: JwtPayload) => {
+const getAllParcel = async (
+  decodedToken: JwtPayload,
+  query: Record<string, string>
+) => {
+  console.log(query);
   if (!decodedToken) {
     throw new AppError(403, "This route not permitted for you");
   }
 
-  let parcels;
+  let conditions: Record<string, unknown> = {};
 
-  let totalParcel;
-
+  // role-based conditions
   if (decodedToken.role === "SENDER") {
-    parcels = await Parcel.find({ sender: decodedToken.userId });
-    totalParcel = await Parcel.countDocuments({ sender: decodedToken.userId })
-      .populate("sender")
-      .populate("receiver");
+    conditions = { sender: decodedToken.userId };
   } else if (decodedToken.role === "RECEIVER") {
-    parcels = await Parcel.find({ receiver: decodedToken.userId })
-      .populate("sender")
-      .populate("receiver");
-    totalParcel = await Parcel.countDocuments({
-      receiver: decodedToken.userId,
-    });
+    conditions = { receiver: decodedToken.userId };
   } else if (
-    decodedToken.role === "ADMIN" ||
-    decodedToken.role === "SUPER_ADMIN"
+    decodedToken.role !== "ADMIN" &&
+    decodedToken.role !== "SUPER_ADMIN"
   ) {
-    parcels = await Parcel.find().populate("sender").populate("receiver");
-    totalParcel = await Parcel.countDocuments();
+    throw new AppError(403, "Unauthorized role");
   }
+
+  // setup QueryBuilder with role-based conditions
+  const queryBuilder = new QueryBuilder(
+    Parcel.find(conditions).populate("sender").populate("receiver"),
+    query
+  )
+    .filter()
+    .search(["trackingId", "status"]) // adjust searchable fields
+    .sort()
+    .fields()
+    .paginate();
+
+  const parcels = await queryBuilder.build();
+  const meta = await queryBuilder.getMeta();
 
   return {
     data: parcels,
-    meta: totalParcel,
+    meta,
   };
 };
 
