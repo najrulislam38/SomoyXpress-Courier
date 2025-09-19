@@ -64,10 +64,11 @@ export class QueryBuilder<T> {
     return this.modelQuery;
   }
 
-  async getMeta() {
-    const totalDocuments = await this.modelQuery.model.countDocuments(
-      this.conditions
-    );
+  async getMeta(extraConditions: Record<string, unknown> = {}) {
+    const totalDocuments = await this.modelQuery.model.countDocuments({
+      ...extraConditions, // role-based conditions
+      ...this.conditions, // filter + search
+    });
 
     const page = Number(this.query.page) || 1;
     const limit = Number(this.query.limit) || 10;

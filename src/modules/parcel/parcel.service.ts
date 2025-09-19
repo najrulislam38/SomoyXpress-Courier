@@ -12,6 +12,7 @@ import { IUser, UserRole } from "../user/user.interface";
 import { isValidStatusTransition } from "../../utils/statusChecker";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { Request } from "express";
+import { parcelSearchableFields } from "./parcel.constant";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const createParcelFromDB = async (userId: string, payload: any) => {
@@ -98,18 +99,16 @@ const getAllParcel = async (
   decodedToken: JwtPayload,
   query: Record<string, string>
 ) => {
-  console.log(query);
   if (!decodedToken) {
     throw new AppError(403, "This route not permitted for you");
   }
 
-  let conditions: Record<string, unknown> = {};
+  let roleConditions: Record<string, unknown> = {};
 
-  // role-based conditions
   if (decodedToken.role === "SENDER") {
-    conditions = { sender: decodedToken.userId };
+    roleConditions = { sender: decodedToken.userId };
   } else if (decodedToken.role === "RECEIVER") {
-    conditions = { receiver: decodedToken.userId };
+    roleConditions = { receiver: decodedToken.userId };
   } else if (
     decodedToken.role !== "ADMIN" &&
     decodedToken.role !== "SUPER_ADMIN"
@@ -117,19 +116,19 @@ const getAllParcel = async (
     throw new AppError(403, "Unauthorized role");
   }
 
-  // setup QueryBuilder with role-based conditions
   const queryBuilder = new QueryBuilder(
-    Parcel.find(conditions).populate("sender").populate("receiver"),
+    Parcel.find(roleConditions).populate("sender").populate("receiver"),
     query
   )
     .filter()
-    .search(["trackingId", "status"]) // adjust searchable fields
+    .search(parcelSearchableFields)
     .sort()
     .fields()
     .paginate();
 
   const parcels = await queryBuilder.build();
-  const meta = await queryBuilder.getMeta();
+
+  const meta = await queryBuilder.getMeta(roleConditions);
 
   return {
     data: parcels,
