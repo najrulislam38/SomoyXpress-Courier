@@ -28,7 +28,7 @@ export const createSenderUserZodSchema = z.object({
   }),
   age: z.number().min(15, { error: "Age must be 15 or over" }).optional(),
   gender: z.enum(["Male", "Female", "Others"]).optional(),
-  role: z.enum([UserRole.SENDER]),
+  role: z.enum([UserRole.SENDER, UserRole.RECEIVER]),
   address: z
     .string()
     .max(200, { message: "Address cannot exceed 200 characters." })
