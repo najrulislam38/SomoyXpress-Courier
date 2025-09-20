@@ -8,6 +8,7 @@ import httpStatus from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import { AuthServices } from "./auth.sevice";
 import { clearCookie, setCookie } from "../../utils/cookieFunction";
+import { UserRole } from "../user/user.interface";
 
 const credentialLogin = async (
   req: Request,
@@ -18,8 +19,68 @@ const credentialLogin = async (
     if (error) {
       return next(new AppError(401, error));
     }
+
     if (!user) {
-      return next(new AppError(401, info.message || "UnAuthorized Access"));
+      return next(new AppError(401, info?.message || "UnAuthorized Access"));
+    }
+
+    if (
+      ![UserRole.SENDER, UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(
+        user.role
+      )
+    ) {
+      return next(
+        new AppError(
+          401,
+          info?.message || "You are not permitted for this route"
+        )
+      );
+    }
+
+    const userTokens = await createUserToken(user);
+
+    setCookie(res, userTokens);
+
+    const { password: pass, ...rest } = user.toObject();
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User Logged in successfully",
+      data: {
+        accessToken: userTokens.accessToken,
+        refreshToken: userTokens.refreshToken,
+        user: rest,
+      },
+    });
+  })(req, res, next);
+};
+
+const credentialLoginForAgent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  passport.authenticate("local", async (error: any, user: any, info: any) => {
+    if (error) {
+      return next(new AppError(401, error));
+    }
+
+    if (!user) {
+      return next(new AppError(401, info?.message || "UnAuthorized Access"));
+    }
+
+    if (
+      ![UserRole.RECEIVER, UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(
+        user.role
+      )
+    ) {
+      return next(
+        new AppError(
+          401,
+          info?.message || "You are not permitted for this route"
+        )
+      );
     }
 
     const userTokens = await createUserToken(user);
@@ -80,6 +141,7 @@ const getNewAccessTokenUseRefreshToken = async (
 
 export const AuthController = {
   credentialLogin,
+  credentialLoginForAgent,
   logout,
   getNewAccessTokenUseRefreshToken,
 };
